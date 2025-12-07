@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://dpg-d4q4qqjuibrs73dfggj0-a.virginia-postgres.render.com:5432/invoiceing?sslmode=require
+    username: malen
+    password: Oxk7ILS7maPbjJKANz2q0VKZCaAeDBJy
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: false
+
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/api_test
+#    username: phonshop_night
+#    password: admin
+#    driver-class-name: org.postgresql.Driver
+#
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#    hibernate:
+#      ddl-auto: update
+#
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ant-path-matcher
+#
+#  liquibase:
+#    change-log: classpath:/db/changelog/db.changelog-master.yaml
+#    enabled: false
+

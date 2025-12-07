@@ -1,0 +1,10 @@
+package com.example.invoicing.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.invoicing.entity.Invoice;
+
+public interface InvoiceRepository extends JpaRepository<Invoice,Long>{
+
+}
+

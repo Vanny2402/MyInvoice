@@ -35,7 +35,6 @@ public class CustomerController {
 		return ResponseEntity.ok(service.update(id, data));
 	}
 
-	//Test
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		service.delete(id);

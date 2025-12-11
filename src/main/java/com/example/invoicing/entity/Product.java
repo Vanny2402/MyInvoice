@@ -17,10 +17,10 @@ public class Product {
     private String name;
     private String productColor;
     private String productType;
-    private String Remark;
+    private String remark;
     private Double price;
     private Double purchasePrice;
-    private Integer stock = 0; // NEW FIELD
+    private Integer stock = 0;
     @Column(columnDefinition = "bytea")
     private byte[] image;
 

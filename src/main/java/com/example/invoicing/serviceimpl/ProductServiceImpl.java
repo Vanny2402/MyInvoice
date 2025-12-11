@@ -35,6 +35,9 @@ public class ProductServiceImpl implements ProductService {
 	    p.setPrice(data.getPrice());
 	    p.setProductColor(data.getProductColor());
 	    p.setProductType(data.getProductType());
+	    p.setStock(data.getStock());
+	    p.setRemark(data.getRemark());
+	    p.setPurchasePrice(data.getPurchasePrice());
 		return repo.save(p);
 	}
 

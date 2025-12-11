@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -23,6 +25,7 @@ public class CustomerController {
 	@GetMapping
 	public ResponseEntity<List<Customer>> findAll() {
 		return ResponseEntity.ok(service.findAll());
+		
 	}
 
 	@GetMapping("/{id}")

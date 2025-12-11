@@ -1,5 +1,5 @@
 package com.example.invoicing.serviceimpl;
-
+import org.springframework.data.domain.Sort;
 import com.example.invoicing.entity.Customer;
 import com.example.invoicing.repository.CustomerRepository;
 import com.example.invoicing.service.CustomerService;
@@ -17,7 +17,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Override
 	public List<Customer> findAll() {
-		return repo.findAll();
+//		return repo.findAll();
+        return repo.findAll(Sort.by(Sort.Direction.ASC, "name")); 
 	}
 
 	@Override

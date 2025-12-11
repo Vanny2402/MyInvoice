@@ -1,14 +1,14 @@
+
 package com.example.invoicing.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
+@Table(name = "payments")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Payment {
 
     @Id
@@ -16,10 +16,9 @@ public class Payment {
     private Long id;
 
     @ManyToOne
-    private Invoice invoice;
+    private Customer customer;
 
-    private Double amount;
+    private BigDecimal amount;
 
     private LocalDateTime paymentDate = LocalDateTime.now();
-	
 }

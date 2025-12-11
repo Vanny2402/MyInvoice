@@ -9,33 +9,32 @@ import java.time.LocalDateTime;
 @Table(name = "sales")
 @Data
 public class Sale {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(name = "customer_id")
-	private Long customerId;
+    @ManyToOne
+    private Customer customer;
 
-	private String product;
-	private BigDecimal qty = BigDecimal.ZERO;
-	private BigDecimal price = BigDecimal.ZERO;
+    @ManyToOne
+    private Product product;  // <-- Changed from String to Product
 
-	@Column(name = "total_price", precision = 14, scale = 2)
-	private BigDecimal totalPrice;
+    private BigDecimal qty = BigDecimal.ZERO;
+    private BigDecimal price = BigDecimal.ZERO;
 
-	@Column(name = "paid_amount", precision = 12, scale = 2)
-	private BigDecimal paidAmount = BigDecimal.ZERO;
+    @Column(name = "total_price", precision = 14, scale = 2)
+    private BigDecimal totalPrice;
 
-	private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "paid_amount", precision = 12, scale = 2)
+    private BigDecimal paidAmount = BigDecimal.ZERO;
 
-	@PrePersist
-	@PreUpdate
-	public void computeTotal() {
-		if (qty == null)
-			qty = BigDecimal.ZERO;
-		if (price == null)
-			price = BigDecimal.ZERO;
-		this.totalPrice = qty.multiply(price);
-	}
+    private LocalDateTime createdAt = LocalDateTime.now();
 
+    @PrePersist
+    @PreUpdate
+    public void computeTotal() {
+        if (qty == null) qty = BigDecimal.ZERO;
+        if (price == null) price = BigDecimal.ZERO;
+        this.totalPrice = qty.multiply(price);
+    }
 }

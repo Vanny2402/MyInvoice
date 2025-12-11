@@ -10,10 +10,18 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Product {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	private String name;
-	private Double price;
+    private String name;
+    private String productColor;
+    private String productType;
+    private String Remark;
+    private Double price;
+    private Double purchasePrice;
+    private Integer stock = 0; // NEW FIELD
+    @Column(columnDefinition = "bytea")
+    private byte[] image;
+
 }

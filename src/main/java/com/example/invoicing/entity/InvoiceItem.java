@@ -10,18 +10,25 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class InvoiceItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
+    @ManyToOne
+    private Invoice invoice;
 
-	    @ManyToOne
-	    private Invoice invoice;
+    @ManyToOne
+    private Product product;
 
-	    @ManyToOne
-	    private Product product;
+    private Integer quantity;
+    private Double price;
+    private Double subtotal;
 
-	    private Integer quantity;
-	    private Double price;
-	    private Double subtotal;
+    @PrePersist
+    public void decreaseStock() {
+        if (product.getStock() < quantity) {
+            throw new IllegalStateException("Not enough stock for product: " + product.getName());
+        }
+        product.setStock(product.getStock() - quantity);
+    }
 }

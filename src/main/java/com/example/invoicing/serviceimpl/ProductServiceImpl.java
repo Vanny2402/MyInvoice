@@ -31,8 +31,10 @@ public class ProductServiceImpl implements ProductService {
 	@Override
 	public Product update(Long id, Product data) {
 		Product p = findById(id);
-		p.setName(data.getName());
-		p.setPrice(data.getPrice());
+	    p.setName(data.getName());
+	    p.setPrice(data.getPrice());
+	    p.setProductColor(data.getProductColor());
+	    p.setProductType(data.getProductType());
 		return repo.save(p);
 	}
 

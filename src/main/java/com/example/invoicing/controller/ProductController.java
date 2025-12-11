@@ -17,6 +17,8 @@ public class ProductController {
 
 	@PostMapping
 	public ResponseEntity<Product> create(@RequestBody Product data) {
+		System.out.println("------------------------------------Debug--------------------------------------------");
+	    System.out.println(data); 
 		return ResponseEntity.ok(service.create(data));
 	}
 

@@ -20,5 +20,6 @@ public class Payment {
 
     private BigDecimal amount;
 
+    private String remark;
     private LocalDateTime paymentDate = LocalDateTime.now();
 }

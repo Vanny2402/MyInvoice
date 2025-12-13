@@ -13,6 +13,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          time_zone: Asia/Phnom_Penh   # ✅ this line sets Cambodian timezone
 
   mvc:
     pathmatch:
@@ -21,26 +23,3 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: false
-
-#spring:
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/api_test
-#    username: phonshop_night
-#    password: admin
-#    driver-class-name: org.postgresql.Driver
-#
-#  jpa:
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate:
-#      ddl-auto: update
-#
-#  mvc:
-#    pathmatch:
-#      matching-strategy: ant-path-matcher
-#
-#  liquibase:
-#    change-log: classpath:/db/changelog/db.changelog-master.yaml
-#    enabled: false
-

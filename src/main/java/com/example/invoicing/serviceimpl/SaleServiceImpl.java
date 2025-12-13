@@ -12,6 +12,7 @@ import com.example.invoicing.entity.Sale;
 import com.example.invoicing.entity.SaleItem;
 import com.example.invoicing.repository.ProductRepository;
 import com.example.invoicing.repository.SaleRepository;
+import com.example.invoicing.service.CustomerService;
 import com.example.invoicing.service.SaleService;
 
 import jakarta.transaction.Transactional;
@@ -22,136 +23,117 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class SaleServiceImpl implements SaleService {
 
-	private final SaleRepository saleRepository;
-	private final ProductRepository productRepository;
+    private final SaleRepository saleRepository;
+    private final ProductRepository productRepository;
+    private final CustomerService customerService;
 
-	@Override
-	public List<Sale> findAll() {
-		return saleRepository.findAll();
-	}
+    @Override
+    public List<Sale> findAll() {
+        return saleRepository.findAll();
+    }
 
-	@Override
-	public Sale findById(Long id) {
-		return saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
-	}
+    @Override
+    public Sale findById(Long id) {
+        return saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
+    }
 
-	@Override
-	public Sale create(Sale sale) {
+    @Override
+    public Sale create(Sale sale) {
+        BigDecimal total = BigDecimal.ZERO;
 
-		BigDecimal total = BigDecimal.ZERO;
-		
-	    if (sale.getItems() == null) {
-	        sale.setItems(new ArrayList<>());
-	    }
-	    for (SaleItem item : sale.getItems()) {
-	        item.setSale(sale); // ✅ link back to parent
-	    }
-	    
-	    if (sale.getItems() != null) {
-	        for (SaleItem item : sale.getItems()) {
-	            Product product = productRepository.findById(item.getProduct().getId())
-	                                         .orElseThrow(() -> new RuntimeException("Product not found"));
-	            item.setProduct(product); // attach full product entity
-	            item.setSale(sale);       // link back to parent
-	        }
-	    }
-	    
-		// ✅ Loop through items and adjust stock
-		for (SaleItem item : sale.getItems()) {
+        if (sale.getItems() == null) {
+            sale.setItems(new ArrayList<>());
+        }
 
-			Product product = item.getProduct();
+        for (SaleItem item : sale.getItems()) {
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-			if (product.getStock() < item.getQty().intValue()) {
-				throw new IllegalStateException("Insufficient stock for product: " + product.getName());
-			}
+            if (product.getStock() < item.getQty().intValue()) {
+                throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+            }
 
-			// ✅ Reduce stock
-			product.setStock(product.getStock() - item.getQty().intValue());
-			productRepository.save(product);
+            product.setStock(product.getStock() - item.getQty().intValue());
+            productRepository.save(product);
 
-			// ✅ Compute line total
-			BigDecimal lineTotal = item.getPrice().multiply(item.getQty());
-			item.setLineTotal(lineTotal);
+            BigDecimal lineTotal = item.getPrice().multiply(item.getQty());
+            item.setLineTotal(lineTotal);
+            item.setProduct(product);
+            item.setSale(sale);
 
-			total = total.add(lineTotal);
-		}
+            total = total.add(lineTotal);
+        }
 
-		sale.setTotalPrice(total);
+        sale.setTotalPrice(total);
 
-		// ✅ Debt logic
-		Customer customer = sale.getCustomer();
-		BigDecimal debt = total.subtract(sale.getPaidAmount());
-		customer.setTotalDebt(customer.getTotalDebt().add(debt));
+        Customer customer = sale.getCustomer();
+        BigDecimal debt = total.subtract(sale.getPaidAmount());
+        customerService.increaseDebt(customer.getId(), debt);
 
-		return saleRepository.save(sale);
-		
-	}
+        return saleRepository.save(sale);
+    }
 
-	@Override
-	public Sale update(Long id, Sale data) {
+    @Override
+    public Sale update(Long id, Sale data) {
+        Sale oldSale = findById(id);
 
-		Sale oldSale = findById(id);
+        // restore stock
+        for (SaleItem oldItem : oldSale.getItems()) {
+            Product p = oldItem.getProduct();
+            p.setStock(p.getStock() + oldItem.getQty().intValue());
+            productRepository.save(p);
+        }
 
-		// Restore stock from old items
-		for (SaleItem oldItem : oldSale.getItems()) {
-			Product p = oldItem.getProduct();
-			p.setStock(p.getStock() + oldItem.getQty().intValue());
-			productRepository.save(p);
-		}
+        // remove old debt
+        BigDecimal oldDebt = oldSale.getTotalPrice().subtract(oldSale.getPaidAmount());
+        customerService.decreaseDebt(oldSale.getCustomer().getId(), oldDebt);
 
-		// Remove old debt from the old customer
-		BigDecimal oldDebt = oldSale.getTotalPrice().subtract(oldSale.getPaidAmount());
-		oldSale.getCustomer().setTotalDebt(oldSale.getCustomer().getTotalDebt().subtract(oldDebt));
+        // apply new items
+        BigDecimal newTotal = BigDecimal.ZERO;
+        for (SaleItem newItem : data.getItems()) {
+            Product p = productRepository.findById(newItem.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-		// Apply new items
-		BigDecimal newTotal = BigDecimal.ZERO;
-		for (SaleItem newItem : data.getItems()) {
-			Product p = newItem.getProduct();
-			if (p.getStock() < newItem.getQty().intValue()) {
-				throw new IllegalStateException("Insufficient stock for product: " + p.getName());
-			}
-			p.setStock(p.getStock() - newItem.getQty().intValue());
-			productRepository.save(p);
+            if (p.getStock() < newItem.getQty().intValue()) {
+                throw new IllegalStateException("Insufficient stock for product: " + p.getName());
+            }
 
-			BigDecimal lineTotal = newItem.getPrice().multiply(newItem.getQty());
-			newItem.setLineTotal(lineTotal);
-			newItem.setSale(oldSale); // ✅ ensure bidirectional consistency
+            p.setStock(p.getStock() - newItem.getQty().intValue());
+            productRepository.save(p);
 
-			newTotal = newTotal.add(lineTotal);
-		}
+            BigDecimal lineTotal = newItem.getPrice().multiply(newItem.getQty());
+            newItem.setLineTotal(lineTotal);
+            newItem.setSale(oldSale);
 
-		// Update sale fields
-		oldSale.setItems(data.getItems());
-		oldSale.setPaidAmount(data.getPaidAmount());
-		oldSale.setCustomer(data.getCustomer());
+            newTotal = newTotal.add(lineTotal);
+        }
 
-		// Add new debt to the *new* customer
-		BigDecimal newDebt = newTotal.subtract(data.getPaidAmount());
-		oldSale.getCustomer().setTotalDebt(oldSale.getCustomer().getTotalDebt().add(newDebt));
+        oldSale.setItems(data.getItems());
+        oldSale.setPaidAmount(data.getPaidAmount());
+        oldSale.setCustomer(data.getCustomer());
+        oldSale.setTotalPrice(newTotal);
 
-		// Let @PreUpdate recompute totalPrice, but keep explicit assignment safe
-		oldSale.setTotalPrice(newTotal);
+        // add new debt
+        BigDecimal newDebt = newTotal.subtract(data.getPaidAmount());
+        customerService.increaseDebt(oldSale.getCustomer().getId(), newDebt);
 
-		return saleRepository.save(oldSale);
-	}
+        return saleRepository.save(oldSale);
+    }
 
-	@Override
-	public void delete(Long id) {
+    @Override
+    public void delete(Long id) {
+        Sale sale = findById(id);
+        Customer customer = sale.getCustomer();
 
-		Sale sale = findById(id);
-		Customer customer = sale.getCustomer();
+        for (SaleItem item : sale.getItems()) {
+            Product p = item.getProduct();
+            p.setStock(p.getStock() + item.getQty().intValue());
+            productRepository.save(p);
+        }
 
-		// ✅ Restore stock
-		for (SaleItem item : sale.getItems()) {
-			Product p = item.getProduct();
-			p.setStock(p.getStock() + item.getQty().intValue());
-			productRepository.save(p);
-		}
+        BigDecimal debt = sale.getTotalPrice().subtract(sale.getPaidAmount());
+        customerService.decreaseDebt(customer.getId(), debt);
 
-		// ✅ Remove debt
-		BigDecimal debt = sale.getTotalPrice().subtract(sale.getPaidAmount());
-		customer.setTotalDebt(customer.getTotalDebt().subtract(debt));
-
-		saleRepository.delete(sale);
-	}
+        saleRepository.delete(sale);
+    }
 }

@@ -3,12 +3,12 @@ package com.example.invoicing.serviceimpl;
 import com.example.invoicing.entity.Customer;
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.repository.PaymentRepository;
+import com.example.invoicing.service.CustomerService;
 import com.example.invoicing.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import jakarta.transaction.Transactional;
@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository repo;
+    private final CustomerService customerService;
 
     @Override
     public List<Payment> findAll() {
@@ -33,11 +34,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment create(Payment payment) {
-        // ✅ Reduce customer debt when new payment is made
         Customer customer = payment.getCustomer();
         if (customer != null) {
-            BigDecimal currentDebt = customer.getTotalDebt() != null ? customer.getTotalDebt() : BigDecimal.ZERO;
-            customer.setTotalDebt(currentDebt.subtract(payment.getAmount()));
+            customerService.decreaseDebt(customer.getId(), payment.getAmount());
         }
         return repo.save(payment);
     }
@@ -48,15 +47,8 @@ public class PaymentServiceImpl implements PaymentService {
         Customer customer = existing.getCustomer();
 
         if (customer != null) {
-            BigDecimal currentDebt = customer.getTotalDebt() != null ? customer.getTotalDebt() : BigDecimal.ZERO;
-
-            // ✅ Restore old amount back to debt
-            currentDebt = currentDebt.add(existing.getAmount());
-
-            // ✅ Subtract new amount
-            currentDebt = currentDebt.subtract(data.getAmount());
-
-            customer.setTotalDebt(currentDebt);
+            customerService.increaseDebt(customer.getId(), existing.getAmount()); // restore old
+            customerService.decreaseDebt(customer.getId(), data.getAmount());     // apply new
         }
 
         existing.setAmount(data.getAmount());
@@ -70,9 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
         Customer customer = existing.getCustomer();
 
         if (customer != null) {
-            BigDecimal currentDebt = customer.getTotalDebt() != null ? customer.getTotalDebt() : BigDecimal.ZERO;
-            // ✅ Removing payment means debt increases again
-            customer.setTotalDebt(currentDebt.add(existing.getAmount()));
+            customerService.increaseDebt(customer.getId(), existing.getAmount());
         }
 
         repo.delete(existing);

@@ -1,17 +1,15 @@
 package com.example.invoicing.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
- 	 	 	
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.*;
+import lombok.*;
+
 @Entity
 @Table(name = "purchase")
 @Data
@@ -19,17 +17,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Purchase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne
-    private Product product;
+	@OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	private List<PurchaseItem> items = new ArrayList<>();
 
-    private Integer quantity;
+	private BigDecimal totalPrice;
+	private String remark;
+	private String supplier;
+	private ZonedDateTime createdAt = ZonedDateTime.now();
 
-    @PrePersist
-    public void increaseStock() {
-        product.setStock(product.getStock() + quantity);
-    }
+	// Remove @PrePersist; stock updates now happen in service
 }

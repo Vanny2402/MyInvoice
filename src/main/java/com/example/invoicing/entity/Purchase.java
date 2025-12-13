@@ -22,7 +22,7 @@ public class Purchase {
 	private Long id;
 
 	@OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
-	@JsonManagedReference
+	@JsonManagedReference	
 	private List<PurchaseItem> items = new ArrayList<>();
 
 	private BigDecimal totalPrice;

@@ -18,8 +18,12 @@ public class Payment {
     @ManyToOne
     private Customer customer;
 
+    @ManyToOne
+    private Sale sale;
+
     private BigDecimal amount;
 
     private String remark;
+
     private LocalDateTime paymentDate = LocalDateTime.now();
 }

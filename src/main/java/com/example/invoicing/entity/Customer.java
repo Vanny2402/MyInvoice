@@ -24,4 +24,3 @@ public class Customer {
     private BigDecimal totalDebt = BigDecimal.ZERO;
 }
 
-

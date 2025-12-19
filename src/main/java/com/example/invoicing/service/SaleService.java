@@ -1,5 +1,7 @@
 package com.example.invoicing.service;
 
+import com.example.invoicing.dto.SaleDTO;
+import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Sale;
 import java.util.List;
 
@@ -13,6 +15,7 @@ public interface SaleService {
 	Sale create(Sale sale);
 
 	Sale update(Long id, Sale sale);
-	List<Sale> findSaleByCustomerId(Long customerId);
+	List<SaleDTO> findSaleByCustomerId(Long customerId);
+	List<SaleListDTO> findCurrentMonthSales();
 	void delete(Long id);
 }

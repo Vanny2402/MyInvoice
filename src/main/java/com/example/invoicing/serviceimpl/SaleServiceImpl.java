@@ -7,9 +7,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.invoicing.dto.SaleDTO;
+import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Customer;
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.entity.Product;
@@ -39,6 +42,13 @@ public class SaleServiceImpl implements SaleService {
 		return saleRepository.findAll();
 	}
 
+	
+//    @Autowired
+//    public SaleServiceImpl(SaleRepository saleRepository) {
+//        this.saleRepository = saleRepository;
+//    }
+    
+    
 	@Override
 	public Sale findById(Long id) {
 		return saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
@@ -183,11 +193,28 @@ public class SaleServiceImpl implements SaleService {
 		saleRepository.delete(sale);
 	}
 
-	@Override
-	public List<Sale> findSaleByCustomerId(Long customerId) {
-		return saleRepository.findByCustomerId(customerId);
-	}
+	 @Override
+	    public List<SaleDTO> findSaleByCustomerId(Long customerId) {
+	        List<Sale> sales = saleRepository.findByCustomerId(customerId);
 
+	        return sales.stream().map(sale -> {
+	            SaleDTO dto = new SaleDTO();
+	            dto.setId(sale.getId());
+
+	            SaleDTO.CustomerDTO customerDTO = new SaleDTO.CustomerDTO();
+	            customerDTO.setId(sale.getCustomer().getId());
+	            dto.setCustomer(customerDTO);
+
+	            dto.setTotalPrice(sale.getTotalPrice());
+	            dto.setPaidAmount(sale.getPaidAmount());
+	            dto.setCreatedAt(sale.getCreatedAt());
+	            dto.setRemark(sale.getRemark());
+
+	            return dto;
+	        }).collect(Collectors.toList());
+	    }
+	 
+	 
 	@Override
 	public List<Sale> getSaleCurrentMonth() {
 		ZoneId cambodiaZone = ZoneId.of("Asia/Phnom_Penh");
@@ -197,6 +224,11 @@ public class SaleServiceImpl implements SaleService {
 		LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 		System.out.println("Start Month: "+startOfMonth + "End of monnt : "+ endOfMonth);
 		return saleRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);
+	}
+
+	@Override
+	public List<SaleListDTO> findCurrentMonthSales() {
+	    return saleRepository.findCurrentMonthSales();
 	}
 
 }

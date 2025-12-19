@@ -1,5 +1,7 @@
 package com.example.invoicing.controller;
 
+import com.example.invoicing.dto.PaymentDTO;
+import com.example.invoicing.dto.SaleDTO;
 import com.example.invoicing.entity.Customer;
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.entity.Sale;
@@ -58,13 +60,13 @@ public class CustomerController {
 
     // Get all payments by customerId
     @GetMapping("/{id}/payments")
-    public ResponseEntity<List<Payment>> findPaymentsByCustomer(@PathVariable Long id) {
+    public ResponseEntity<List<PaymentDTO>> findPaymentsByCustomer(@PathVariable Long id) {
         return ResponseEntity.ok(paymentService.findByCustomerId(id));
     }
 
-    // Get all sales by customerId
     @GetMapping("/{id}/sales")
-    public ResponseEntity<List<Sale>> findSalesByCustomer(@PathVariable Long id) {
+    public ResponseEntity<List<SaleDTO>> findSalesByCustomer(@PathVariable Long id) {
         return ResponseEntity.ok(saleService.findSaleByCustomerId(id));
     }
+
 }

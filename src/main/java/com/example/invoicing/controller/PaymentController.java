@@ -1,12 +1,23 @@
 package com.example.invoicing.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.invoicing.dto.PaymentDTO;
+import com.example.invoicing.dto.PaymentReportDTO;
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.service.PaymentService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -29,7 +40,7 @@ public class PaymentController {
     }
 
     @GetMapping("/customer/{id}")
-    public List<Payment> getByCustomer(@PathVariable Long id) {
+    public List<PaymentDTO> getByCustomer(@PathVariable Long id) {
         return paymentService.findByCustomerId(id);
     }
     // ✅ Create new payment
@@ -49,5 +60,11 @@ public class PaymentController {
     public ResponseEntity<Void> deletePayment(@PathVariable Long id) {
         paymentService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    
+    @GetMapping("/reports")
+    public ResponseEntity<List<PaymentReportDTO>> getAllPaymentForReport() {
+        return ResponseEntity.ok(paymentService.getAllPaymentForReport());
     }
 }

@@ -40,4 +40,9 @@ public class SaleController {
 		service.delete(id);
 		return ResponseEntity.noContent().build();
 	}
+
+	@GetMapping("/current-month")
+	public ResponseEntity<List<Sale>> getSaleCurrentMonth() {
+		return ResponseEntity.ok(service.getSaleCurrentMonth());
+	}
 }

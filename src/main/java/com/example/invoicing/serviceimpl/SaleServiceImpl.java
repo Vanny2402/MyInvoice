@@ -1,6 +1,10 @@
 package com.example.invoicing.serviceimpl;
+
 //Complete Details
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +60,8 @@ public class SaleServiceImpl implements SaleService {
 				throw new IllegalStateException("Insufficient stock: " + product.getName());
 			}
 
+			// ✅ Update product price from sale item
+			product.setPrice(item.getPrice().doubleValue());
 			product.setStock(product.getStock() - item.getQty().intValue());
 			productRepository.save(product);
 
@@ -84,7 +90,7 @@ public class SaleServiceImpl implements SaleService {
 			payment.setCustomer(savedSale.getCustomer());
 			payment.setSale(savedSale);
 			payment.setAmount(paid);
-			payment.setRemark("Paid at sale");
+			payment.setRemark("បង់ជាមួយការទិញ#" + payment.getSale().getId());
 			paymentRepository.save(payment);
 		}
 
@@ -119,6 +125,9 @@ public class SaleServiceImpl implements SaleService {
 			if (p.getStock() < item.getQty().intValue()) {
 				throw new IllegalStateException("Insufficient stock for product: " + p.getName());
 			}
+
+			// ✅ Update product price from sale item
+			p.setPrice(item.getPrice().doubleValue());
 
 			p.setStock(p.getStock() - item.getQty().intValue());
 			productRepository.save(p);
@@ -173,4 +182,21 @@ public class SaleServiceImpl implements SaleService {
 
 		saleRepository.delete(sale);
 	}
+
+	@Override
+	public List<Sale> findSaleByCustomerId(Long customerId) {
+		return saleRepository.findByCustomerId(customerId);
+	}
+
+	@Override
+	public List<Sale> getSaleCurrentMonth() {
+		ZoneId cambodiaZone = ZoneId.of("Asia/Phnom_Penh");
+		// Start of current month
+		LocalDateTime startOfMonth = LocalDate.now(cambodiaZone).withDayOfMonth(1).atStartOfDay();
+		// End of current month (last nanosecond of the month)
+		LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+		System.out.println("Start Month: "+startOfMonth + "End of monnt : "+ endOfMonth);
+		return saleRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);
+	}
+
 }

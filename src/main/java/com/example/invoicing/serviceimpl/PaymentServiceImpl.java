@@ -52,6 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         existing.setAmount(data.getAmount());
+        existing.setRemark(data.getRemark());
         existing.setPaymentDate(data.getPaymentDate());
         return repo.save(existing);
     }
@@ -67,4 +68,15 @@ public class PaymentServiceImpl implements PaymentService {
 
         repo.delete(existing);
     }
+
+    @Override
+    public List<Payment> findByCustomer(Customer customer) {
+        return repo.findByCustomer(customer);
+    }
+
+    @Override
+    public List<Payment> findByCustomerId(Long customerId) {
+        return repo.findByCustomerId(customerId);
+    }
+
 }

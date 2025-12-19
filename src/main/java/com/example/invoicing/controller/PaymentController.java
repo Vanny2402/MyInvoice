@@ -15,6 +15,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+
     // ✅ Get all payments
     @GetMapping
     public ResponseEntity<List<Payment>> getAllPayments() {
@@ -27,6 +28,10 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.findById(id));
     }
 
+    @GetMapping("/customer/{id}")
+    public List<Payment> getByCustomer(@PathVariable Long id) {
+        return paymentService.findByCustomerId(id);
+    }
     // ✅ Create new payment
     @PostMapping
     public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {

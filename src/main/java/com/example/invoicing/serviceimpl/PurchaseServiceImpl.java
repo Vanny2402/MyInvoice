@@ -53,6 +53,8 @@ public class PurchaseServiceImpl implements PurchaseService {
 			Product product = productRepository.findById(item.getProduct().getId())
 					.orElseThrow(() -> new RuntimeException("Product not found"));
 
+			// ✅ Update product's purchase price 
+			product.setPurchasePrice(item.getPrice().doubleValue());			
 			// Increase stock on purchase
 			product.setStock(product.getStock() + item.getQuantity());
 			productRepository.save(product);

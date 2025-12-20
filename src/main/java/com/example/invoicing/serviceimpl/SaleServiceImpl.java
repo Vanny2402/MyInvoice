@@ -41,13 +41,6 @@ public class SaleServiceImpl implements SaleService {
 	public List<Sale> findAll() {
 		return saleRepository.findAll();
 	}
-
-	
-//    @Autowired
-//    public SaleServiceImpl(SaleRepository saleRepository) {
-//        this.saleRepository = saleRepository;
-//    }
-    
     
 	@Override
 	public Sale findById(Long id) {
@@ -84,16 +77,17 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		sale.setTotalPrice(total);
-
 		BigDecimal paid = sale.getPaidAmount() == null ? BigDecimal.ZERO : sale.getPaidAmount();
 		BigDecimal debt = total.subtract(paid);
 		sale.setDebt(debt);
 
 		Sale savedSale = saleRepository.save(sale);
 
-		if (debt.compareTo(BigDecimal.ZERO) > 0) {
-			customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
-		}
+		customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
+
+//		if (debt.compareTo(BigDecimal.ZERO) > 0) {
+//			customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
+//		}
 
 		if (paid.compareTo(BigDecimal.ZERO) > 0) {
 			Payment payment = new Payment();
@@ -103,7 +97,6 @@ public class SaleServiceImpl implements SaleService {
 			payment.setRemark("បង់ជាមួយការទិញ#" + payment.getSale().getId());
 			paymentRepository.save(payment);
 		}
-
 		return savedSale;
 	}
 

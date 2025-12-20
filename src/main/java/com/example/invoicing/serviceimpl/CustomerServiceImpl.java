@@ -17,21 +17,21 @@ import java.util.List;
 @Transactional
 public class CustomerServiceImpl implements CustomerService {
 
-    private final CustomerRepository repo;
+    private final CustomerRepository custoemrRepo;
 
     @Override
     public List<Customer> findAll() {
-        return repo.findAll(Sort.by(Sort.Direction.ASC, "name"));
+        return custoemrRepo.findAll(Sort.by(Sort.Direction.ASC, "name"));
     }
 
     @Override
     public Customer findById(Long id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        return custoemrRepo.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
     }
 
     @Override
     public Customer create(Customer customer) {
-        return repo.save(customer);
+        return custoemrRepo.save(customer);
     }
 
     @Override
@@ -39,12 +39,12 @@ public class CustomerServiceImpl implements CustomerService {
         Customer c = findById(id);
         c.setName(data.getName());
         c.setPhone(data.getPhone());
-        return repo.save(c);
+        return custoemrRepo.save(c);
     }
 
     @Override
     public void delete(Long id) {
-        repo.deleteById(id);
+        custoemrRepo.deleteById(id);
     }
 
     // ✅ Debt helpers
@@ -52,8 +52,8 @@ public class CustomerServiceImpl implements CustomerService {
     public void increaseDebt(Long customerId, BigDecimal amount) {
         Customer c = findById(customerId);
         BigDecimal current = safe(c.getTotalDebt());
-        c.setTotalDebt(current.add(safe(amount)));
-        repo.save(c);
+	        c.setTotalDebt(current.add(safe(amount)));
+        custoemrRepo.save(c);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer c = findById(customerId);
         BigDecimal current = safe(c.getTotalDebt());
         c.setTotalDebt(current.subtract(safe(amount)));
-        repo.save(c);
+        custoemrRepo.save(c);
     }
 
     private BigDecimal safe(BigDecimal v) {

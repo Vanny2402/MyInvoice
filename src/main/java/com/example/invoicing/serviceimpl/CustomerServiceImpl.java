@@ -39,6 +39,8 @@ public class CustomerServiceImpl implements CustomerService {
         Customer c = findById(id);
         c.setName(data.getName());
         c.setPhone(data.getPhone());
+        c.setAddress(data.getAddress());
+        
         return custoemrRepo.save(c);
     }
 

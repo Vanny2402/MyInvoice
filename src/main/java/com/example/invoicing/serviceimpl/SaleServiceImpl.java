@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.example.invoicing.dto.SaleDTO;
+import com.example.invoicing.dto.SaleDTO.SaleItemDTO;
 import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Customer;
 import com.example.invoicing.entity.Payment;
@@ -63,8 +64,6 @@ public class SaleServiceImpl implements SaleService {
 				throw new IllegalStateException("Insufficient stock: " + product.getName());
 			}
 
-			// ✅ Update product price from sale item
-			product.setPrice(item.getPrice().doubleValue());
 			product.setStock(product.getStock() - item.getQty().intValue());
 			productRepository.save(product);
 
@@ -84,10 +83,6 @@ public class SaleServiceImpl implements SaleService {
 		Sale savedSale = saleRepository.save(sale);
 
 		customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
-
-//		if (debt.compareTo(BigDecimal.ZERO) > 0) {
-//			customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
-//		}
 
 		if (paid.compareTo(BigDecimal.ZERO) > 0) {
 			Payment payment = new Payment();
@@ -114,10 +109,15 @@ public class SaleServiceImpl implements SaleService {
 		// Remove old debt
 		BigDecimal oldDebt = oldSale.getTotalPrice().subtract(oldSale.getPaidAmount());
 		customerService.decreaseDebt(oldSale.getCustomer().getId(), oldDebt);
+		
+		
 
 		// Remove old payments
-		List<Payment> oldPayments = paymentRepository.findByCustomer(oldSale.getCustomer());
+//		List<Payment> oldPayments = paymentRepository.findByCustomer(oldSale.getCustomer());
+//		oldPayments.forEach(paymentRepository::delete);
+		List<Payment> oldPayments = paymentRepository.findBySale_Id(oldSale.getId());
 		oldPayments.forEach(paymentRepository::delete);
+
 
 		// Process new items
 		BigDecimal newTotal = BigDecimal.ZERO;
@@ -129,7 +129,6 @@ public class SaleServiceImpl implements SaleService {
 				throw new IllegalStateException("Insufficient stock for product: " + p.getName());
 			}
 
-			// ✅ Update product price from sale item
 			p.setPrice(item.getPrice().doubleValue());
 
 			p.setStock(p.getStock() - item.getQty().intValue());
@@ -189,37 +188,39 @@ public class SaleServiceImpl implements SaleService {
 	 @Override
 	    public List<SaleDTO> findSaleByCustomerId(Long customerId) {
 	        List<Sale> sales = saleRepository.findByCustomerId(customerId);
-
 	        return sales.stream().map(sale -> {
 	            SaleDTO dto = new SaleDTO();
 	            dto.setId(sale.getId());
-
 	            SaleDTO.CustomerDTO customerDTO = new SaleDTO.CustomerDTO();
 	            customerDTO.setId(sale.getCustomer().getId());
 	            dto.setCustomer(customerDTO);
-
 	            dto.setTotalPrice(sale.getTotalPrice());
 	            dto.setPaidAmount(sale.getPaidAmount());
 	            dto.setCreatedAt(sale.getCreatedAt());
 	            dto.setRemark(sale.getRemark());
 
+	            List<SaleItemDTO> itemDTOs = sale.getItems().stream()
+	                .map(item -> {
+	                    SaleItemDTO itemDTO = new SaleDTO.SaleItemDTO();
+	                    itemDTO.setProductName(item.getProduct().getName());
+	                    return itemDTO;
+	                })
+	                .collect(Collectors.toList());
+	            dto.setItems(itemDTOs);
 	            return dto;
 	        }).collect(Collectors.toList());
 	    }
 	 
-	 
 	@Override
 	public List<Sale> getSaleCurrentMonth() {
-		ZoneId cambodiaZone = ZoneId.of("Asia/Phnom_Penh");
-		// Start of current month
-		LocalDateTime startOfMonth = LocalDate.now(cambodiaZone).withDayOfMonth(1).atStartOfDay();
-		// End of current month (last nanosecond of the month)
-		LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+		ZoneId cambodiaZone = ZoneId.of("Asia/Phnom_Penh");		// Start of current month
+		LocalDateTime startOfMonth = LocalDate.now(cambodiaZone) .withDayOfMonth(1) .atStartOfDay();		// End of current month (last nanosecond of the month)
+		LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
 		System.out.println("Start Month: "+startOfMonth + "End of monnt : "+ endOfMonth);
-		return saleRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);
-	}
+		return saleRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);	
+		}
 
-	@Override
+	@Override	
 	public List<SaleListDTO> findCurrentMonthSales() {
 	    return saleRepository.findCurrentMonthSales();
 	}

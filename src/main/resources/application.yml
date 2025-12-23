@@ -1,9 +1,11 @@
 spring:
   datasource:
-#    url: jdbc:postgresql://dpg-d4q4qqjuibrs73dfggj0-a.virginia-postgres.render.com:5432/invoiceing?sslmode=require 
-    url: jdbc:postgresql://dpg-d535893e5dus73al5skg-a.virginia-postgres.render.com:5432/mysale_3wv1?sslmode=require
-    username: vanny
-    password: z6dR5GZD4pIVpGyMyoCeb4hz3WvZb4nF
+#    url: jdbc:postgresql://dpg-d535893e5dus73al5skg-a.virginia-postgres.render.com:5432/mysale_3wv1?sslmode=require
+#    username: vanny
+#    password: z6dR5GZD4pIVpGyMyoCeb4hz3WvZb4nF
+    url: jdbc:postgresql://dpg-d4q4qqjuibrs73dfggj0-a.virginia-postgres.render.com:5432/invoiceing?sslmode=require 
+    username: malen
+    password: Oxk7ILS7maPbjJKANz2q0VKZCaAeDBJy
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -24,3 +26,8 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: false
+telegram: 
+  bot: 
+    token: 8551051405:AAGgWbv84o9S1LUGWUm39M827O2T_bDzftQ 
+  chat: 
+    id: -1003565865573

@@ -1,9 +1,12 @@
 package com.example.invoicing.service;
 
-import com.example.invoicing.dto.SaleDTO;
-import com.example.invoicing.dto.SaleListDTO;
-import com.example.invoicing.entity.Sale;
+import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+
+import com.example.invoicing.dto.SaleDTO;
+import com.example.invoicing.entity.Sale;
 
 public interface SaleService {
 
@@ -16,6 +19,15 @@ public interface SaleService {
 
 	Sale update(Long id, Sale sale);
 	List<SaleDTO> findSaleByCustomerId(Long customerId);
-	List<SaleListDTO> findCurrentMonthSales();
+    Page<SaleDTO> findCurrentMonthSales(int page, int size);
 	void delete(Long id);
+	
+	
+	Page<SaleDTO> findSalesByDateRange(
+	        LocalDate start,
+	        LocalDate end,
+	        int page,
+	        int size
+	);
+
 }

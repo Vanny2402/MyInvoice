@@ -1,14 +1,13 @@
 spring:
   datasource:
-    url: jdbc:postgresql://dpg-d535893e5dus73al5skg-a.virginia-postgres.render.com:5432/mysale_3wv1?sslmode=require
+    url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
     username: vanny
-    password: z6dR5GZD4pIVpGyMyoCeb4hz3WvZb4nF
-
-
-#    url: jdbc:postgresql://dpg-d4q4qqjuibrs73dfggj0-a.virginia-postgres.render.com:5432/invoiceing?sslmode=require 
-#    username: malen
-#    password: Oxk7ILS7maPbjJKANz2q0VKZCaAeDBJy
-
+    password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
+    
+#RealData
+#    url: jdbc:postgresql://dpg-d5n0p6e3jp1c73adlas0-a.virginia-postgres.render.com:5432/mysale_133d?sslmode=require
+#    username: vanny
+#    password: 2AIIk7UrMvdsuW4r3hMeQ83TcMIxdMrZ
 
 
     driver-class-name: org.postgresql.Driver

@@ -1,32 +1,41 @@
 package com.example.invoicing.entity;
 
-import java.math.BigDecimal;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
-@Table(name = "purchase_item")
-@Data
+@Table(
+        name = "purchase_item",
+        indexes = {
+                @Index(name = "idx_purchase_item_purchase_id", columnList = "purchase_id")
+        }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PurchaseItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "purchase_id")
-    @JsonBackReference
+    private Integer quantity;
+
+    private BigDecimal price;
+
+    @Column(name = "line_total")
+    private BigDecimal lineTotal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_id", nullable = false)
     private Purchase purchase;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
-    private Integer quantity;
-    private BigDecimal price;
-    private BigDecimal lineTotal;
 }
+

@@ -1,34 +1,43 @@
 package com.example.invoicing.entity;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 import lombok.*;
-
 @Entity
-@Table(name = "purchase")
-@Data
+@Table(
+        name = "purchase",
+        indexes = {
+                @Index(name = "idx_purchase_created_at", columnList = "created_at")
+        }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Purchase {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
 
-	@OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
-	@JsonManagedReference	
-	private List<PurchaseItem> items = new ArrayList<>();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	private BigDecimal totalPrice;
-	private String remark;
-	private String supplier;
-	private ZonedDateTime createdAt = ZonedDateTime.now();
+    private String supplier;
 
-	// Remove @PrePersist; stock updates now happen in service
+    private String remark;
+
+    @Column(name = "created_at", nullable = false)
+    private ZonedDateTime createdAt;
+
+    @Column(name = "total_price", nullable = false)
+    private BigDecimal totalPrice;
+
+    @OneToMany(
+            mappedBy = "purchase",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<PurchaseItem> items = new ArrayList<>();
 }
+

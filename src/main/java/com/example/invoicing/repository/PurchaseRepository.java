@@ -1,17 +1,25 @@
 package com.example.invoicing.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.invoicing.entity.Purchase;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+
+import java.time.ZonedDateTime;
 import java.util.List;
 
-
 public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
-    @Query("SELECT p FROM Purchase p WHERE MONTH(p.createdAt) = :month AND YEAR(p.createdAt) = :year")
-    List<Purchase> findByMonthAndYear(@Param("month") int month, @Param("year") int year);
-	   
-	   
+
+    @Query("""
+        SELECT DISTINCT p
+        FROM Purchase p
+        LEFT JOIN FETCH p.items i
+        LEFT JOIN FETCH i.product
+        WHERE p.createdAt BETWEEN :start AND :end
+        ORDER BY p.createdAt DESC
+    """)
+    List<Purchase> findByDateRangeWithItems(
+            @Param("start") ZonedDateTime start,
+            @Param("end") ZonedDateTime end
+    );
+
 }
-
-

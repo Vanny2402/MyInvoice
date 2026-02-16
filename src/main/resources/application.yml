@@ -1,29 +1,17 @@
 spring:
   datasource:
-<<<<<<< HEAD
-    url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
-    username: vanny
-    password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
-
-
-#    url: jdbc:postgresql://dpg-d5fpno4hg0os73dtccng-a.virginia-postgres.render.com:5432/invoiceing_0dlp?sslmode=require
-#    username: invoiceing_0dlp_user
-#    password: xPbJx7OzY3QQQAudjtEiePPIYfbJnhNt
-
-
-=======
   
   
-    url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
-    username: vanny
-    password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
-    
-#    url: jdbc:postgresql://dpg-d69h10rh46gs73ftqre0-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9_cc4v?sslmode=require
+#    url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
 #    username: vanny
-#    password: oj6GQRNSnWYoDWomQk4w2b6wwCmNHs9B
->>>>>>> Sale_listv2
+#    password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
+    
+    url: jdbc:postgresql://dpg-d69h10rh46gs73ftqre0-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9_cc4v?sslmode=require
+    username: vanny
+    password: oj6GQRNSnWYoDWomQk4w2b6wwCmNHs9B
 
     driver-class-name: org.postgresql.Driver
+
   jpa:
     show-sql: true
     hibernate:

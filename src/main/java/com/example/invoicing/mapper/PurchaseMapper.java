@@ -10,26 +10,32 @@ import java.util.stream.Collectors;
 
 public class PurchaseMapper {
 
+    private PurchaseMapper() {}
+
     public static PurchaseSummaryDTO toSummaryDTO(Purchase purchase) {
-        List<ItemDTO> items = purchase.getItems().stream()
-            .map(PurchaseMapper::toItemDTO)
-            .collect(Collectors.toList());
+
+        List<ItemDTO> items = purchase.getItems() == null
+                ? List.of()
+                : purchase.getItems()
+                    .stream()
+                    .map(PurchaseMapper::toItemDTO)
+                    .toList();
 
         return new PurchaseSummaryDTO(
-            purchase.getId(),
-            purchase.getSupplier(),
-            purchase.getCreatedAt(),
-            purchase.getTotalPrice(),
-            items
+                purchase.getId(),
+                purchase.getSupplier(),
+                purchase.getCreatedAt(),
+                purchase.getTotalPrice(),
+                items
         );
     }
 
     public static ItemDTO toItemDTO(PurchaseItem item) {
         return new ItemDTO(
-            item.getProduct().getName(),
-            item.getQuantity(),
-            item.getPrice(),
-            item.getLineTotal()
+                item.getProduct().getName(),
+                item.getQuantity(),
+                item.getPrice(),
+                item.getLineTotal()
         );
     }
 }

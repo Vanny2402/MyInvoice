@@ -1,6 +1,8 @@
 package com.example.invoicing.serviceimpl;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,139 +29,190 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class PurchaseServiceImpl implements PurchaseService {
 
-	private final PurchaseRepository purchaseRepository;
-	private final ProductRepository productRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final ProductRepository productRepository;
     private final PurchaseItemRepository purchaseItemRepository;
 
-	@Override
-	public List<Purchase> findAll() {
-		return purchaseRepository.findAll();
-	}
+    // =========================
+    // FIND
+    // =========================
 
-	@Override
-	public Purchase findById(Long id) {
-		return purchaseRepository.findById(id).orElseThrow(() -> new RuntimeException("Purchase not found"));
-	}
+    @Override
+    public List<Purchase> findAll() {
+        return purchaseRepository.findAll();
+    }
 
-	@Override
-	public Purchase create(Purchase purchase) {
-		BigDecimal total = BigDecimal.ZERO;
+    @Override
+    public Purchase findById(Long id) {
+        return purchaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Purchase not found"));
+    }
 
-		if (purchase.getItems() == null) {
-			purchase.setItems(new ArrayList<>());
-		}
+    // =========================
+    // CREATE (Batch optimized)
+    // =========================
 
-		for (PurchaseItem item : purchase.getItems()) {
-			Product product = productRepository.findById(item.getProduct().getId())
-					.orElseThrow(() -> new RuntimeException("Product not found"));
+    @Override
+    public Purchase create(Purchase purchase) {
 
-			// ✅ Update product's purchase price 
-			product.setPurchasePrice(item.getPrice().doubleValue());			
-			// Increase stock on purchase
-			product.setStock(product.getStock() + item.getQuantity());
-			productRepository.save(product);
+        BigDecimal total = BigDecimal.ZERO;
+        List<Product> productsToSave = new ArrayList<>();
 
-			// Calculate line total
-			BigDecimal qty = BigDecimal.valueOf(item.getQuantity());
-			BigDecimal lineTotal = item.getPrice().multiply(qty);
+        for (PurchaseItem item : purchase.getItems()) {
 
-			item.setLineTotal(lineTotal);
-			item.setProduct(product);
-			item.setPurchase(purchase);
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-			total = total.add(lineTotal);
-		}
+            product.setPurchasePrice(item.getPrice().doubleValue());
+            product.setStock(product.getStock() + item.getQuantity());
 
-		purchase.setTotalPrice(total);
-		return purchaseRepository.save(purchase);
-	}
+            productsToSave.add(product);
 
-	@Override
-	public Purchase update(Long id, Purchase data) {
-	    Purchase oldPurchase = findById(id);
+            BigDecimal lineTotal = item.getPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-	    // Revert old stock increases
-	    for (PurchaseItem oldItem : oldPurchase.getItems()) {
-	        Product p = oldItem.getProduct();
-	        p.setStock(p.getStock() - oldItem.getQuantity());
-	        productRepository.save(p);
-	    }
+            item.setLineTotal(lineTotal);
+            item.setPurchase(purchase);
+            item.setProduct(product);
 
-	    // Clear the existing items list instead of replacing it
-	    oldPurchase.getItems().clear();
-	    BigDecimal newTotal = BigDecimal.ZERO;
-	    for (PurchaseItem newItem : data.getItems()) {
-	        Product p = productRepository.findById(newItem.getProduct().getId())
-	                .orElseThrow(() -> new RuntimeException("Product not found"));
+            total = total.add(lineTotal);
+        }
 
-	        // Increase stock for new items
-	        p.setStock(p.getStock() + newItem.getQuantity());
-	        productRepository.save(p);
+        productRepository.saveAll(productsToSave);
 
-	        BigDecimal qty = BigDecimal.valueOf(newItem.getQuantity());
-	        BigDecimal lineTotal = newItem.getPrice().multiply(qty);
+        purchase.setTotalPrice(total);
 
-	        newItem.setLineTotal(lineTotal);
-	        newItem.setPurchase(oldPurchase); // keep same purchase reference
-	        newItem.setProduct(p);
+        return purchaseRepository.save(purchase);
+    }
 
-	        oldPurchase.getItems().add(newItem); // mutate existing list
-	        newTotal = newTotal.add(lineTotal);
-	    }
+    // =========================
+    // UPDATE (Stock safe)
+    // =========================
 
-	    oldPurchase.setRemark(data.getRemark());
-	    oldPurchase.setSupplier(data.getSupplier());
-	    oldPurchase.setTotalPrice(newTotal);
-	    oldPurchase.setCreatedAt(data.getCreatedAt() != null ? data.getCreatedAt() : oldPurchase.getCreatedAt());
+    @Override
+    public Purchase update(Long id, Purchase data) {
 
-	    return purchaseRepository.save(oldPurchase);
-	}
+        Purchase old = findById(id);
 
-	@Override
-	public void delete(Long id) {
-		Purchase purchase = findById(id);
-	    for (PurchaseItem item : purchase.getItems()) {
-	        Product p = item.getProduct();
-	        int newStock = p.getStock() - item.getQuantity();
+        List<Product> productsToSave = new ArrayList<>();
 
-	        if (newStock >= 0) {
-	            p.setStock(newStock);
-	            productRepository.save(p);
-	        } else {
-	            throw new IllegalStateException(
-	                "Cannot delete purchase because product '" + p.getName() +
-	                "' would have negative stock. Current stock: " + p.getStock() +
-	                ", quantity to revert: " + item.getQuantity()
-	            );
-	        }
-	    }
-		purchaseRepository.delete(purchase);
-	}
-	
-	
-	public PurchaseSummaryDTO findSummaryById(Long id) {
-	    Purchase purchase = findById(id);
-	    return PurchaseMapper.toSummaryDTO(purchase); 
-	}
-	
-	@Override
-	public List<PurchaseSummaryDTO> findAllSummaries() {
-	    return findAll().stream()
-	        .map(PurchaseMapper::toSummaryDTO)
-	        .toList();
-	}
+        // revert stock
+        for (PurchaseItem oldItem : old.getItems()) {
+            Product p = oldItem.getProduct();
+            p.setStock(p.getStock() - oldItem.getQuantity());
+            productsToSave.add(p);
+        }
 
-	
-	@Override
-	public List<PurchaseSummaryDTO> findSummariesByMonthYear(int month, int year) {
-	    return purchaseRepository.findByMonthAndYear(month, year).stream()
-	        .map(PurchaseMapper::toSummaryDTO) // call mapper
-	        .toList();
-	}
-	
-	@Override
-	public Page<ItemDTO> findItemSummariesByPurchaseId(Long purchaseId, Pageable pageable) {
-	    Page<PurchaseItem> page = purchaseItemRepository.findByPurchaseId(purchaseId, pageable);
-	    return page.map(PurchaseMapper::toItemDTO);
-	}
+        old.getItems().clear();
+
+        BigDecimal newTotal = BigDecimal.ZERO;
+
+        for (PurchaseItem newItem : data.getItems()) {
+
+            Product p = productRepository.findById(newItem.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            p.setStock(p.getStock() + newItem.getQuantity());
+            productsToSave.add(p);
+
+            BigDecimal lineTotal = newItem.getPrice()
+                    .multiply(BigDecimal.valueOf(newItem.getQuantity()));
+
+            newItem.setLineTotal(lineTotal);
+            newItem.setPurchase(old);
+            newItem.setProduct(p);
+
+            old.getItems().add(newItem);
+
+            newTotal = newTotal.add(lineTotal);
+        }
+
+        productRepository.saveAll(productsToSave);
+
+        old.setSupplier(data.getSupplier());
+        old.setRemark(data.getRemark());
+        old.setCreatedAt(
+                data.getCreatedAt() != null
+                        ? data.getCreatedAt()
+                        : old.getCreatedAt()
+        );
+        old.setTotalPrice(newTotal);
+
+        return purchaseRepository.save(old);
+    }
+
+    // =========================
+    // DELETE
+    // =========================
+
+    @Override
+    public void delete(Long id) {
+
+        Purchase purchase = findById(id);
+
+        List<Product> productsToSave = new ArrayList<>();
+
+        for (PurchaseItem item : purchase.getItems()) {
+            Product p = item.getProduct();
+
+            int newStock = p.getStock() - item.getQuantity();
+            if (newStock < 0) {
+                throw new IllegalStateException(
+                        "Cannot delete purchase because product '"
+                                + p.getName() + "' would have negative stock."
+                );
+            }
+
+            p.setStock(newStock);
+            productsToSave.add(p);
+        }
+
+        productRepository.saveAll(productsToSave);
+
+        purchaseRepository.delete(purchase);
+    }
+
+    // =========================
+    // DTO Methods
+    // =========================
+
+    @Override
+    public PurchaseSummaryDTO findSummaryById(Long id) {
+        return PurchaseMapper.toSummaryDTO(findById(id));
+    }
+
+    @Override
+    public List<PurchaseSummaryDTO> findAllSummaries() {
+        return purchaseRepository.findAll()
+                .stream()
+                .map(PurchaseMapper::toSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public List<PurchaseSummaryDTO> findSummariesByMonthYear(int month, int year) {
+
+        ZonedDateTime start = ZonedDateTime.of(
+                year, month, 1, 0, 0, 0, 0,
+                ZoneId.systemDefault()
+        );
+
+        ZonedDateTime end = start.plusMonths(1).minusNanos(1);
+
+        return purchaseRepository
+                .findByDateRangeWithItems(start, end)
+                .stream()
+                .map(PurchaseMapper::toSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public Page<ItemDTO> findItemSummariesByPurchaseId(
+            Long purchaseId,
+            Pageable pageable
+    ) {
+        return purchaseItemRepository
+                .findByPurchaseId(purchaseId, pageable)
+                .map(PurchaseMapper::toItemDTO);
+    }
 }

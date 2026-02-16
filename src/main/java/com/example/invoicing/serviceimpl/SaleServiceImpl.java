@@ -1,6 +1,5 @@
 package com.example.invoicing.serviceimpl;
 
-//Complete Details
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,14 +10,22 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+<<<<<<< HEAD
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+=======
+import org.springframework.data.domain.Pageable;
+>>>>>>> Sale_listv2
 import org.springframework.stereotype.Service;
 
 import com.example.invoicing.dto.SaleDTO;
 import com.example.invoicing.dto.SaleDTO.SaleItemDTO;
+<<<<<<< HEAD
 import com.example.invoicing.entity.Customer;
+=======
+import com.example.invoicing.dto.SaleListDTO;
+>>>>>>> Sale_listv2
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.entity.Product;
 import com.example.invoicing.entity.Sale;
@@ -37,48 +44,50 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class SaleServiceImpl implements SaleService {
 
-	private final SaleRepository saleRepository;
-	private final ProductRepository productRepository;
-	private final PaymentRepository paymentRepository;
-	private final CustomerService customerService;
+    private final SaleRepository saleRepository;
+    private final ProductRepository productRepository;
+    private final PaymentRepository paymentRepository;
+    private final CustomerService customerService;
 
-	@Override
-	public List<Sale> findAll() {
-		return saleRepository.findAll();
-	}
-    
-	@Override
-	public Sale findById(Long id) {
-		return saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
-	}
+    private static final ZoneId CAMBODIA_ZONE = ZoneId.of("Asia/Phnom_Penh");
 
-	@Override
-	public Sale create(Sale sale) {
+    /* =====================================================
+       BASIC
+    ===================================================== */
 
-		if (sale.getItems() == null)
-			sale.setItems(new ArrayList<>());
+    @Override
+    public Page<Sale> findAll(Pageable pageable) {
+        return saleRepository.findAll(pageable);
+    }
 
-		BigDecimal total = BigDecimal.ZERO;
+    @Override
+    public Sale findById(Long id) {
+        return saleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sale not found"));
+    }
 
-		for (SaleItem item : sale.getItems()) {
-			Product product = productRepository.findById(item.getProduct().getId())
-					.orElseThrow(() -> new RuntimeException("Product not found"));
+    /* =====================================================
+       DATE FILTER
+    ===================================================== */
 
-			if (product.getStock() < item.getQty().intValue()) {
-				throw new IllegalStateException("Insufficient stock: " + product.getName());
-			}
+    @Override
+    public Page<Sale> getSalesByDateRange(
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable) {
 
-			product.setStock(product.getStock() - item.getQty().intValue());
-			productRepository.save(product);
+        LocalDateTime start =
+                startDate.atStartOfDay(CAMBODIA_ZONE).toLocalDateTime();
 
-			BigDecimal lineTotal = item.getPrice().multiply(item.getQty());
-			item.setLineTotal(lineTotal);
-			item.setProduct(product);
-			item.setSale(sale);
+        LocalDateTime end =
+                endDate.plusDays(1)
+                       .atStartOfDay(CAMBODIA_ZONE)
+                       .toLocalDateTime();
 
-			total = total.add(lineTotal);
-		}
+        return saleRepository.findByDateRange(start, end, pageable);
+    }
 
+<<<<<<< HEAD
 		sale.setTotalPrice(total);
 		BigDecimal paid = sale.getPaidAmount() == null ? 
 		BigDecimal.ZERO : sale.getPaidAmount();
@@ -86,109 +95,94 @@ public class SaleServiceImpl implements SaleService {
 		BigDecimal debt = total.subtract(paid);
 		sale.setDebt(debt);
 		Sale savedSale = saleRepository.save(sale);
+=======
+    @Override
+    public Page<Sale> getSaleCurrentMonth(Pageable pageable) {
 
-		customerService.increaseDebt(savedSale.getCustomer().getId(), debt);
+        LocalDate today = LocalDate.now(CAMBODIA_ZONE);
+        LocalDate start = today.withDayOfMonth(1);
+        LocalDate end = start.plusMonths(1);
+>>>>>>> Sale_listv2
 
-		if (paid.compareTo(BigDecimal.ZERO) > 0) {
-			Payment payment = new Payment();
-			payment.setCustomer(savedSale.getCustomer());
-			payment.setSale(savedSale);
-			payment.setAmount(paid);
-			payment.setRemark("បង់ជាមួយការទិញ#" + payment.getSale().getId());
-			paymentRepository.save(payment);
-		}
-		return savedSale;
-	}
+        return getSalesByDateRange(start, end.minusDays(1), pageable);
+    }
 
-	@Override
-	public Sale update(Long id, Sale data) {
-		Sale oldSale = findById(id);
+    @Override
+    public List<SaleListDTO> findCurrentMonthSales() {
 
-		// Restore stock
-		for (SaleItem item : oldSale.getItems()) {
-			Product p = item.getProduct();
-			p.setStock(p.getStock() + item.getQty().intValue());
-			productRepository.save(p);
-		}
+        LocalDate today = LocalDate.now(CAMBODIA_ZONE);
+        LocalDate start = today.withDayOfMonth(1);
+        LocalDate end = start.plusMonths(1);
 
-		// Remove old debt
-		BigDecimal oldDebt = oldSale.getTotalPrice().subtract(oldSale.getPaidAmount());
-		customerService.decreaseDebt(oldSale.getCustomer().getId(), oldDebt);
-		
-		
+        return saleRepository.findCurrentMonthSales(
+                start.atStartOfDay(CAMBODIA_ZONE).toLocalDateTime(),
+                end.atStartOfDay(CAMBODIA_ZONE).toLocalDateTime()
+        );
+    }
 
-		// Remove old payments
-//		List<Payment> oldPayments = paymentRepository.findByCustomer(oldSale.getCustomer());
-//		oldPayments.forEach(paymentRepository::delete);
-		List<Payment> oldPayments = paymentRepository.findBySale_Id(oldSale.getId());
-		oldPayments.forEach(paymentRepository::delete);
+    /* =====================================================
+       CREATE
+    ===================================================== */
 
+    @Override
+    public Sale create(Sale sale) {
 
-		// Process new items
-		BigDecimal newTotal = BigDecimal.ZERO;
-		for (SaleItem item : data.getItems()) {
-			Product p = productRepository.findById(item.getProduct().getId())
-					.orElseThrow(() -> new RuntimeException("Product not found"));
+        if (sale.getItems() == null) {
+            sale.setItems(new ArrayList<>());
+        }
 
-			if (p.getStock() < item.getQty().intValue()) {
-				throw new IllegalStateException("Insufficient stock for product: " + p.getName());
-			}
+        BigDecimal total = BigDecimal.ZERO;
 
-			p.setPrice(item.getPrice().doubleValue());
+        for (SaleItem item : sale.getItems()) {
 
-			p.setStock(p.getStock() - item.getQty().intValue());
-			productRepository.save(p);
+            Product product = getProduct(item.getProduct().getId());
 
-			BigDecimal lineTotal = item.getPrice().multiply(item.getQty());
-			item.setLineTotal(lineTotal);
-			item.setSale(oldSale);
+            validateStock(product, item.getQty().intValue());
+            decreaseStock(product, item.getQty().intValue());
 
-			newTotal = newTotal.add(lineTotal);
-		}
+            BigDecimal lineTotal = item.getPrice().multiply(item.getQty());
+            item.setLineTotal(lineTotal);
+            item.setProduct(product);
+            item.setSale(sale);
 
-		oldSale.setItems(data.getItems());
-		oldSale.setPaidAmount(data.getPaidAmount());
-		oldSale.setCustomer(data.getCustomer());
-		oldSale.setTotalPrice(newTotal);
+            total = total.add(lineTotal);
+        }
 
-		BigDecimal newDebt = newTotal.subtract(data.getPaidAmount());
-		if (newDebt.compareTo(BigDecimal.ZERO) > 0) {
-			customerService.increaseDebt(oldSale.getCustomer().getId(), newDebt);
-		}
+        sale.setTotalPrice(total);
 
-		// Auto-create payment for new paid amount
-		if (data.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
-			Payment payment = new Payment();
-			payment.setCustomer(oldSale.getCustomer());
-			payment.setAmount(data.getPaidAmount());
-			payment.setRemark("Paid at sale update");
-			paymentRepository.save(payment);
-		}
+        BigDecimal paid = safeAmount(sale.getPaidAmount());
+        BigDecimal debt = total.subtract(paid);
 
-		return saleRepository.save(oldSale);
-	}
+        sale.setPaidAmount(paid);
+        sale.setDebt(debt);
 
-	@Override
-	public void delete(Long id) {
+        Sale saved = saleRepository.save(sale);
 
-		Sale sale = findById(id);
-		Customer customer = sale.getCustomer();
+        customerService.increaseDebt(saved.getCustomer().getId(), debt);
 
-		for (SaleItem item : sale.getItems()) {
-			Product p = item.getProduct();
-			p.setStock(p.getStock() + item.getQty().intValue());
-			productRepository.save(p);
-		}
+        createPaymentIfNeeded(saved, paid);
 
+        return saved;
+    }
+
+<<<<<<< HEAD
 		BigDecimal paid = sale.getPaidAmount() == null ? BigDecimal.ZERO : sale.getPaidAmount();
 		BigDecimal saleDebt = sale.getTotalPrice().subtract(paid);
 		customerService.decreaseDebt(customer.getId(), saleDebt);
 		List<Payment> payments = paymentRepository.findBySale_Id(sale.getId());
 		payments.forEach(paymentRepository::delete);
+=======
+    /* =====================================================
+       UPDATE
+    ===================================================== */
 
-		saleRepository.delete(sale);
-	}
+    @Override
+    public Sale update(Long id, Sale newSale) {
+>>>>>>> Sale_listv2
 
+        Sale existing = findById(id);
+
+<<<<<<< HEAD
 	@Override
 	public List<SaleDTO> findSaleByCustomerId(Long customerId) {
 	    List<Sale> sales = saleRepository.findByCustomerId(customerId);
@@ -369,4 +363,140 @@ public class SaleServiceImpl implements SaleService {
 
 
 
+=======
+        // Restore old stock first
+        restoreStock(existing);
+
+        // Delete old payments
+        paymentRepository.findBySale_Id(existing.getId())
+                .forEach(paymentRepository::delete);
+
+        // Recalculate like create
+        existing.setItems(newSale.getItems());
+        existing.setPaidAmount(newSale.getPaidAmount());
+        existing.setRemark(newSale.getRemark());
+
+        return create(existing); // reuse create logic safely
+    }
+
+    /* =====================================================
+       DELETE
+    ===================================================== */
+
+    @Override
+    public void delete(Long id) {
+
+        Sale sale = findById(id);
+
+        // Restore stock
+        restoreStock(sale);
+
+        // Reverse debt
+        BigDecimal paid = safeAmount(sale.getPaidAmount());
+        BigDecimal debt = sale.getTotalPrice().subtract(paid);
+
+        customerService.decreaseDebt(
+                sale.getCustomer().getId(),
+                debt
+        );
+
+        // Delete payments
+        paymentRepository.findBySale_Id(sale.getId())
+                .forEach(paymentRepository::delete);
+
+        saleRepository.delete(sale);
+    }
+
+    /* =====================================================
+       CUSTOMER SALES
+    ===================================================== */
+
+    @Override
+    public List<SaleDTO> findSaleByCustomerId(Long customerId) {
+
+        return saleRepository.findByCustomerId(customerId)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /* =====================================================
+       PRIVATE HELPERS
+    ===================================================== */
+
+    private Product getProduct(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
+
+    private void validateStock(Product product, int qty) {
+        if (product.getStock() < qty) {
+            throw new IllegalStateException(
+                    "Insufficient stock: " + product.getName()
+            );
+        }
+    }
+
+    private void decreaseStock(Product product, int qty) {
+        product.setStock(product.getStock() - qty);
+    }
+
+    private void increaseStock(Product product, int qty) {
+        product.setStock(product.getStock() + qty);
+    }
+
+    private void restoreStock(Sale sale) {
+        if (sale.getItems() == null) return;
+
+        for (SaleItem item : sale.getItems()) {
+            increaseStock(item.getProduct(), item.getQty().intValue());
+        }
+    }
+
+    private BigDecimal safeAmount(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private void createPaymentIfNeeded(Sale sale, BigDecimal paid) {
+
+        if (paid.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        Payment payment = new Payment();
+        payment.setCustomer(sale.getCustomer());
+        payment.setSale(sale);
+        payment.setAmount(paid);
+        payment.setRemark("បង់ជាមួយការទិញ#" + sale.getId());
+
+        paymentRepository.save(payment);
+    }
+
+    private SaleDTO mapToDTO(Sale sale) {
+
+        SaleDTO dto = new SaleDTO();
+        dto.setId(sale.getId());
+
+        dto.setCustomer(
+                new SaleDTO.CustomerDTO(
+                        sale.getCustomer().getId(),
+                        sale.getCustomer().getName()
+                )
+        );
+
+        dto.setTotalPrice(sale.getTotalPrice());
+        dto.setPaidAmount(sale.getPaidAmount());
+        dto.setCreatedAt(sale.getCreatedAt());
+        dto.setRemark(sale.getRemark());
+
+        List<SaleItemDTO> items = sale.getItems()
+                .stream()
+                .map(i -> new SaleItemDTO(
+                        i.getProduct().getName()
+                ))
+                .collect(Collectors.toList());
+
+        dto.setItems(items);
+
+        return dto;
+    }
+>>>>>>> Sale_listv2
 }

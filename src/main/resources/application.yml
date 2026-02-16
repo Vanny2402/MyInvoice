@@ -1,5 +1,6 @@
 spring:
   datasource:
+<<<<<<< HEAD
     url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
     username: vanny
     password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
@@ -10,6 +11,17 @@ spring:
 #    password: xPbJx7OzY3QQQAudjtEiePPIYfbJnhNt
 
 
+=======
+  
+  
+    url: jdbc:postgresql://dpg-d5m6cj1r0fns73eopcag-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9?sslmode=require
+    username: vanny
+    password: iNDfUFZpOKSj8Ycyz1GcKULqMDtopAxI
+    
+#    url: jdbc:postgresql://dpg-d69h10rh46gs73ftqre0-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9_cc4v?sslmode=require
+#    username: vanny
+#    password: oj6GQRNSnWYoDWomQk4w2b6wwCmNHs9B
+>>>>>>> Sale_listv2
 
     driver-class-name: org.postgresql.Driver
   jpa:

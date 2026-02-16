@@ -15,7 +15,6 @@ import com.example.invoicing.entity.Sale;
 
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
-<<<<<<< HEAD
 	List<Sale> findByCustomerId(Long customerId);
 
 	@Query("""

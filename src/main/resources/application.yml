@@ -3,9 +3,9 @@ spring:
 #    url: jdbc:postgresql://dpg-d69h10rh46gs73ftqre0-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9_cc4v?sslmode=require
 #    username: vanny
 #    password: oj6GQRNSnWYoDWomQk4w2b6wwCmNHs9B
-    url: jdbc:postgresql://dpg-d6skbiggjchc73btau20-a.virginia-postgres.render.com:5432/db_lkxx?sslmode=require
-    username: pws
-    password: JQNbBh2vSfOSu6Bx89otd7QQfGqjv13G
+    url: jdbc:postgresql://dpg-d7hn7al8nd3s73872b6g-a.virginia-postgres.render.com:5432/apr_db_ttsc?sslmode=require
+    username: vanny
+    password: PmcKAjnHkten7JkoQdnFTS2sQwrCHRo1
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true

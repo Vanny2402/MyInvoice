@@ -1,11 +1,13 @@
 
 package com.example.invoicing.repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +19,35 @@ import com.example.invoicing.entity.Sale;
 
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
-    List<Sale> findByCustomerId(Long customerId);
+    @EntityGraph(attributePaths = { "customer", "items", "items.product" })
+    @Query("""
+            SELECT s FROM Sale s
+            WHERE s.customer.id = :customerId
+            ORDER BY s.createdAt DESC
+            """)
+    List<Sale> findByCustomerIdWithDetails(@Param("customerId") Long customerId);
+
+    @Query("""
+            SELECT COALESCE(SUM(s.totalPrice), 0)
+            FROM Sale s
+            WHERE s.createdAt >= :start
+              AND s.createdAt < :end
+            """)
+    BigDecimal sumTotalSalesInDateRange(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT COALESCE(SUM(i.qty * COALESCE(p.purchasePrice, 0)), 0)
+            FROM SaleItem i
+            JOIN i.sale s
+            JOIN i.product p
+            WHERE s.createdAt >= :start
+              AND s.createdAt < :end
+            """)
+    BigDecimal sumPurchaseCostInDateRange(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
     @Query("""
         SELECT s
         FROM Sale s

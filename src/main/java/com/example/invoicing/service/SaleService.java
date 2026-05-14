@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.example.invoicing.dto.SaleDTO;
+import com.example.invoicing.dto.SaleDateRangeSummaryDTO;
 import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Sale;
 
@@ -28,6 +29,8 @@ public interface SaleService {
             LocalDate endDate,
             Pageable pageable
     );
+
+    SaleDateRangeSummaryDTO getSalesSummaryForDateRange(LocalDate startDate, LocalDate endDate);
 
     /* MONTH */
     Page<Sale> getSaleCurrentMonth(Pageable pageable);

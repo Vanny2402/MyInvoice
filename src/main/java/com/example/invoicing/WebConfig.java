@@ -16,7 +16,8 @@ public class WebConfig {
             	registry.addMapping("/**")
                 .allowedOrigins("http://localhost:5173", "https://reactweb-mni6.onrender.com")
                 .allowedMethods("*")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .maxAge(3600);
             }
 //            public void addCorsMappings(CorsRegistry registry) {
 //                registry.addMapping("/api/**")

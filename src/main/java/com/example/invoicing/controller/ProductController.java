@@ -1,8 +1,13 @@
 package com.example.invoicing.controller;
 
+import com.example.invoicing.dto.ProductListDTO;
 import com.example.invoicing.entity.Product;
 import com.example.invoicing.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,19 +22,41 @@ public class ProductController {
 
 	@PostMapping
 	public ResponseEntity<Product> create(@RequestBody Product data) {
-		System.out.println("------------------------------------Debug--------------------------------------------");
-	    System.out.println(data); 
 		return ResponseEntity.ok(service.create(data));
 	}
 
 	@GetMapping
-	public ResponseEntity<List<Product>> findAll() {
+	public ResponseEntity<List<ProductListDTO>> findAll() {
 		return ResponseEntity.ok(service.findAll());
 	}
 
+	@GetMapping("/paged")
+	public ResponseEntity<Page<ProductListDTO>> findAllPaged(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "50") int size,
+			@RequestParam(defaultValue = "name") String sortBy,
+			@RequestParam(defaultValue = "asc") String direction) {
+		int safeSize = Math.min(Math.max(size, 1), 500);
+		Sort sort = direction.equalsIgnoreCase("desc")
+				? Sort.by(resolveProductSortProperty(sortBy)).descending()
+				: Sort.by(resolveProductSortProperty(sortBy)).ascending();
+		Pageable pageable = PageRequest.of(page, safeSize, sort);
+		return ResponseEntity.ok(service.findPage(pageable));
+	}
+
 	@GetMapping("/{id}")
-	public ResponseEntity<Product> findById(@PathVariable Long id) {
+	public ResponseEntity<ProductListDTO> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(service.findById(id));
+	}
+
+	private static String resolveProductSortProperty(String sortBy) {
+		if (sortBy == null || sortBy.isBlank()) {
+			return "name";
+		}
+		return switch (sortBy) {
+			case "id", "name", "stock", "price", "purchasePrice", "productType", "productColor", "remark" -> sortBy;
+			default -> "name";
+		};
 	}
 
 	@PutMapping("/{id}")

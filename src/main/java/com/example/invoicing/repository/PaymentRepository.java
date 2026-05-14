@@ -2,6 +2,7 @@ package com.example.invoicing.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,6 +11,7 @@ import com.example.invoicing.entity.Customer;
 import com.example.invoicing.entity.Payment;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long>{
+    @EntityGraph(attributePaths = {"customer"})
     List<Payment> findByCustomerId(Long customerId);
 //    List<Payment> findBySaleId(Long saleId);
     List<Payment> findByCustomer(Customer customerId);

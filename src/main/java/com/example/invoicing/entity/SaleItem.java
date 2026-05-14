@@ -1,6 +1,15 @@
 package com.example.invoicing.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -8,7 +17,13 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
-@Table(name = "sale_items")
+@Table(
+        name = "sale_items",
+        indexes = {
+                @Index(name = "idx_sale_item_sale_id", columnList = "sale_id"),
+                @Index(name = "idx_sale_item_product_id", columnList = "product_id")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

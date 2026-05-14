@@ -1,22 +1,33 @@
 spring:
   datasource:
-#    url: jdbc:postgresql://dpg-d69h10rh46gs73ftqre0-a.virginia-postgres.render.com:5432/mysale_3wv1_3fl9_cc4v?sslmode=require
-#    username: vanny
-#    password: oj6GQRNSnWYoDWomQk4w2b6wwCmNHs9B
-    url: jdbc:postgresql://dpg-d7hn7al8nd3s73872b6g-a.virginia-postgres.render.com:5432/apr_db_ttsc?sslmode=require
-    username: vanny
-    password: PmcKAjnHkten7JkoQdnFTS2sQwrCHRo1
+#    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d7hn7al8nd3s73872b6g-a.virginia-postgres.render.com:5432/apr_db_ttsc?sslmode=require}"
+#    username: "${SPRING_DATASOURCE_USERNAME:vanny}"
+#    password: "${SPRING_DATASOURCE_PASSWORD:PmcKAjnHkten7JkoQdnFTS2sQwrCHRo1}"
+
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d82itbbeo5us73f6d8mg-a.virginia-postgres.render.com:5432/lengsun_vyzv?sslmode=require}"
+    username: "${SPRING_DATASOURCE_USERNAME:leng}"
+    password: "${SPRING_DATASOURCE_PASSWORD:oAbCxE3DUoojkUQwxgJOdjnAWmyyoEZe}"
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
         jdbc:
-          time_zone: Asia/Phnom_Penh   # ✅ this line sets Cambodian timezone
+          time_zone: Asia/Phnom_Penh
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        default_batch_fetch_size: 16
 
   mvc:
     pathmatch:
@@ -25,8 +36,9 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: false
-telegram: 
-  bot: 
-    token: 8551051405:AAGgWbv84o9S1LUGWUm39M827O2T_bDzftQ 
-  chat: 
-    id: -1003565865573
+
+telegram:
+  bot:
+    token: "${TELEGRAM_BOT_TOKEN:8551051405:AAGgWbv84o9S1LUGWUm39M827O2T_bDzftQ}"
+  chat:
+    id: "${TELEGRAM_CHAT_ID:-1003565865573}"

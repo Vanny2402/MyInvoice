@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.invoicing.dto.SaleDTO;
 import com.example.invoicing.dto.SaleDTO.SaleItemDTO;
+import com.example.invoicing.dto.SaleDateRangeSummaryDTO;
 import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Payment;
 import com.example.invoicing.entity.Product;
@@ -74,6 +75,19 @@ public class SaleServiceImpl implements SaleService {
                        .toLocalDateTime();
 
         return saleRepository.findByDateRange(start, end, pageable);
+    }
+
+    @Override
+    public SaleDateRangeSummaryDTO getSalesSummaryForDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start =
+                startDate.atStartOfDay(CAMBODIA_ZONE).toLocalDateTime();
+        LocalDateTime end =
+                endDate.plusDays(1)
+                        .atStartOfDay(CAMBODIA_ZONE)
+                        .toLocalDateTime();
+        BigDecimal totalSales = saleRepository.sumTotalSalesInDateRange(start, end);
+        BigDecimal totalPurchaseCost = saleRepository.sumPurchaseCostInDateRange(start, end);
+        return new SaleDateRangeSummaryDTO(totalSales, totalPurchaseCost);
     }
 
     @Override
@@ -203,7 +217,7 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public List<SaleDTO> findSaleByCustomerId(Long customerId) {
 
-        return saleRepository.findByCustomerId(customerId)
+        return saleRepository.findByCustomerIdWithDetails(customerId)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

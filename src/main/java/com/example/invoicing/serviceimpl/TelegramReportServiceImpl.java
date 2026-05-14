@@ -36,7 +36,6 @@ public class TelegramReportServiceImpl implements TelegramReportService {
                 saleRepository.findInvoicesForMonth(start, end);
 
         if (invoices.isEmpty()) {
-            telegramService.sendMessage(null);
             return;
         }
 

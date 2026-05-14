@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.invoicing.dto.SaleDateRangeSummaryDTO;
 import com.example.invoicing.dto.SaleListDTO;
 import com.example.invoicing.entity.Sale;
 import com.example.invoicing.service.SaleService;
@@ -63,6 +64,16 @@ public class SaleController {
     }
 
     /* ================= DATE RANGE (🔥 FIXED) ================= */
+
+    @GetMapping("/by-date/summary")
+    public ResponseEntity<SaleDateRangeSummaryDTO> getSalesSummaryByDate(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        return ResponseEntity.ok(
+                service.getSalesSummaryForDateRange(
+                        LocalDate.parse(startDate),
+                        LocalDate.parse(endDate)));
+    }
 
     @GetMapping("/by-date")
     public ResponseEntity<Page<Sale>> getSalesByDateRange(

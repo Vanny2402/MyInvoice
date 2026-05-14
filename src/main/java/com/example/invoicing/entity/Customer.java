@@ -2,11 +2,22 @@ package com.example.invoicing.entity;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
-@Table(name = "customers")
+@Table(
+        name = "customers",
+        indexes = {
+                @Index(name = "idx_customer_name", columnList = "name")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

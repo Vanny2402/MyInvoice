@@ -31,8 +31,9 @@ public class PurchaseMapper {
     }
 
     public static ItemDTO toItemDTO(PurchaseItem item) {
+        String productName = item.getProduct() != null ? item.getProduct().getName() : "";
         return new ItemDTO(
-                item.getProduct().getName(),
+                productName,
                 item.getQuantity(),
                 item.getPrice(),
                 item.getLineTotal()

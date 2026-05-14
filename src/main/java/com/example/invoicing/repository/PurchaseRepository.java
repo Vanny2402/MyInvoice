@@ -6,8 +6,18 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
+
+    @Query("""
+        SELECT DISTINCT p
+        FROM Purchase p
+        LEFT JOIN FETCH p.items i
+        LEFT JOIN FETCH i.product
+        WHERE p.id = :id
+        """)
+    Optional<Purchase> findByIdWithDetails(@Param("id") Long id);
 
     @Query("""
         SELECT DISTINCT p

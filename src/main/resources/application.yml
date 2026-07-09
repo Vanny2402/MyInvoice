@@ -1,13 +1,13 @@
 spring:
   datasource:
-
-#    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d82itbbeo5us73f6d8mg-a.virginia-postgres.render.com:5432/lengsun_vyzv?sslmode=require}"
-#    username: "${SPRING_DATASOURCE_USERNAME:leng}"
-#    password: "${SPRING_DATASOURCE_PASSWORD:oAbCxE3DUoojkUQwxgJOdjnAWmyyoEZe}"
     
-    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d8m3cli8qa3s73b1e6k0-a.virginia-postgres.render.com:5432/junedb_utyx?sslmode=require}"
-    username: "${SPRING_DATASOURCE_USERNAME:junedb_utyx_user}"
-    password: "${SPRING_DATASOURCE_PASSWORD:fOecENgSQhLwHsDpyxpu40Ty8uvgzRB8}"
+#    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d8m3cli8qa3s73b1e6k0-a.virginia-postgres.render.com:5432/junedb_utyx?sslmode=require}"
+#    username: "${SPRING_DATASOURCE_USERNAME:junedb_utyx_user}"
+#    password: "${SPRING_DATASOURCE_PASSWORD:fOecENgSQhLwHsDpyxpu40Ty8uvgzRB8}"
+    
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d97oheutrd3s739ej0u0-a.virginia-postgres.render.com:5432/dbjul?sslmode=require}"
+    username: "${SPRING_DATASOURCE_USERNAME:leng}"
+    password: "${SPRING_DATASOURCE_PASSWORD:mmEctMyVhYeoBXJ0vFoCpfoeFbmYA4fW}"
     
     driver-class-name: org.postgresql.Driver
     hikari:

@@ -5,9 +5,9 @@ spring:
 #    username: "${SPRING_DATASOURCE_USERNAME:leng}"
 #    password: "${SPRING_DATASOURCE_PASSWORD:mmEctMyVhYeoBXJ0vFoCpfoeFbmYA4fW}"
 
-    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-d9rf1qon74is73emuac0-a.virginia-postgres.render.com:5432/augdb_ksns?sslmode=require}"
-    username: "${SPRING_DATASOURCE_USERNAME:leng}"
-    password: "${SPRING_DATASOURCE_PASSWORD:3ekABEGQ0ubbERXK8ccnjnSh0Q4AlBgL}"
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://dpg-daf9s1ad0e5s73bfv8og-a.virginia-postgres.render.com:5432/sep_np28?sslmode=require}"
+    username: "${SPRING_DATASOURCE_USERNAME:vanny}"
+    password: "${SPRING_DATASOURCE_PASSWORD:O7QuVk52bd66cjemEPS0XqDlCNvLFHRu}"
     
     driver-class-name: org.postgresql.Driver
     hikari:
